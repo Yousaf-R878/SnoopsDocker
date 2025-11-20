@@ -1,0 +1,33 @@
+name: snoops
+
+services:
+  snoops-mongo:
+    image: mongo:6.0.26
+    # ports:
+    # # In prod you wanna remove this so you dont expose that port to the world
+    #   - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - snoops
+  snooops-server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./.env
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - snoops
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - snoops-mongo
+volumes:
+  mongo_data:
+networks:
+  snoops:
+    driver: bridge
+

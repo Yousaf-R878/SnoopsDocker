@@ -1,0 +1,156 @@
+<main class="scroller">
+    <div id="error" class="error">
+        {{#if error}}
+            {{error}}
+        {{/if}}
+    </div>
+    <div class="scroller-dog-container" id="content">
+        <div class="scroller-dog-image-container">
+            <img id="dog-image" src="Text" alt="Dog Photo" >
+        </div>
+        <div class="scroller-dog-info-container">
+            <div class="scroller-dog-info-header">
+                <p id="dog-name">{{dog.name}}</p>
+                <p id="dog-breeds">{{dog.breeds}}</p>
+            </div>
+            <div class="scroller-dog-info">
+                <p id="dog-description">{{dog.description}}</p>
+                <p id="dog-age">{{dog.age}}</p>
+                <p id="dog-distance">{{dog.distance}} miles away from you</p>
+            </div>  
+        </div>
+        <div class="scroller-interaction-container">
+            <button
+                class="scroller-interaction-button like"
+                id="likeButton"
+            >❤️</button>
+            <button
+                class="scroller-interaction-button dislike"
+                id="dislikeButton"
+            >👎</button>
+        </div>
+    </div>   
+</main>
+<script>
+        let dogsData = JSON.parse('{{{dogs}}}');
+
+        if(dogsData.length === 0) {
+            document.getElementById("error").textContent = "No dogs found! You've looked through all the dogs!";
+            let content = document.getElementById("content");
+            //delete content so people cannot interact with it.
+            content.parentNode.removeChild(content);
+        }
+    
+        function breedName(breeds) {
+            if (breeds.length > 1) {
+                return breeds[0] + " Mix";
+            } else {
+                return breeds[0];
+            }
+        }
+
+        let dogName = document.getElementById("dog-name");
+        let dogBreeds = document.getElementById("dog-breeds");
+        let dogAge = document.getElementById("dog-age");
+        let dogImage = document.getElementById("dog-image");
+        let dogDescription = document.getElementById("dog-description"); 
+        let dogDistance = document.getElementById("dog-distance");
+
+        if(dogsData.length > 0){
+            dogName.textContent = dogsData[0].name;
+            dogBreeds.textContent = breedName(dogsData[0].breeds);
+            dogAge.textContent = dogsData[0].age;
+            dogImage.src = dogsData[0].img;
+            dogDescription.textContent = dogsData[0].description;
+            dogDistance.textContent = dogsData[0].distance;
+        }
+        let dogId = "";
+        let dogAcenterId = "";      
+        if(dogsData.length > 0) {
+            dogId = dogsData[0]._id.toString();
+            dogAcenterId = dogsData[0].acenterId.toString();
+        }
+
+        let i = 0;
+
+        let leftButton = document.getElementsByClassName("scroller-button")[0];
+        let rightButton = document.getElementsByClassName("scroller-button")[1];
+
+        let userId = '{{user._id}}';
+
+        if(dogsData.length > 0){
+            dogName.textContent = dogsData[0].name;
+            dogBreeds.textContent = breedName(dogsData[0].breeds);
+            dogAge.textContent = dogsData[0].age;
+            dogImage.src = dogsData[0].img;
+            dogDescription.textContent = dogsData[0].description;
+
+            function goBack() {
+                if (i === 0) {
+                    i = dogsData.length - 1;
+                } else {
+                    i--;
+                }
+
+                dogName.textContent = dogsData[i].name;
+                dogBreeds.textContent = breedName(dogsData[i].breeds);
+                dogAge.textContent = dogsData[i].age;
+                dogImage.src = dogsData[i].img;
+                dogDescription.textContent = dogsData[i].description;
+                dogDistance.textContent = dogsData[i].distance;
+
+            };
+
+            function goForward(){
+                if (i === dogsData.length - 1) {
+                    window.location.reload();
+                } else {
+                    i++;
+            
+                    dogName.textContent = dogsData[i].name;
+                    dogBreeds.textContent = breedName(dogsData[i].breeds);
+                    dogAge.textContent = dogsData[i].age;
+                    dogImage.src = dogsData[i].img;
+                    dogDescription.textContent = dogsData[i].description;
+                    dogId = dogsData[i]._id.toString();
+                    dogAcenterId = dogsData[i].acenterId.toString();
+                    dogDistance.textContent = dogsData[i].distance;
+                }
+            };
+
+            //like button post request
+            $("#likeButton").click(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: `/users/${userId}/like/${dogAcenterId}/${dogId}`,
+                    type: "POST",
+                    data: "Love the dog!",
+                    success: function (data) {
+                        // console.log(data);
+                    },
+                    error: function (err) {
+                        // console.log(err);
+                    },
+                });
+                goForward();
+            }); 
+
+            //dislike button post request
+            $("#dislikeButton").click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: `/users/${userId}/dislike/${dogAcenterId}/${dogId}`,
+                    type: "POST",
+                    data: "Hate the dog!",
+                    success: function (data) {
+                        // console.log(data);
+                    },
+                    error: function (err) {
+                        // console.log(err);
+                    },
+                });
+                goForward();
+            })
+        }
+
+    </script>

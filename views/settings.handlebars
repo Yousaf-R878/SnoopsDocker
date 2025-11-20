@@ -1,0 +1,356 @@
+<main class="settings">
+    <div class="settingsWrapper">  
+        <div class="settingsContainer" id="user-settings">
+            <h2 class="settingHeader">User Account Settings</h2>
+            <div id="error" class="error">
+                    {{#if error}}
+                        {{error}}
+                    {{/if}}
+            </div>
+            <form id="update-user" method="POST" enctype="multipart/form-data">
+                <img src="{{user.img}}" alt="{{user.firstName}} {{user.lastName}}" class="settingsImageDisplay">
+
+                <label class="settingsLabel" for="firstName">First Name</label>
+                <input class="settingsInput" type="text" name="firstName" id="firstName" value="{{user.firstName}}" >
+
+                <label class="settingsLabel" for="lastName">Last Name</label>
+                <input class="settingsInput" type="text" name="lastName" id="lastName" value="{{user.lastName}}" >
+
+                <label class="settingsLabel" for="email">Email</label>
+                <input class="settingsInput" type="email" name="email" id="email" value="{{user.email}}" >
+
+                <label class="settingsLabel" for="dob">Date of Birth</label>
+                <input class="settingsInput" type="date" name="dob" id="dob" value="{{user.dob}}" >
+
+                <label class="settingsLabel" for="phone">Phone</label>
+                <input class="settingsInput" type="tel" name="phone" id="phone" value="{{user.phone}}" >
+
+                <label class="settingsLabel" for="address">Address</label>
+                <input class="settingsInput" type="text" name="address" id="address" value="{{user.address}}" >
+
+                <label class="settingsLabel" for="password">Password</label>
+                <input class="settingsInput" type="password" name="password" id="password">
+
+                <label class="settingsLabel" for="image">Profile Picture</label>
+                <input class="settingsInput imgInput" type="file" name="image" id="image" accept=".jpeg,.png,.img">
+
+                <label class="settingsLabel" for="agePreference">Max Age Preference</label>
+                <input class="settingsInput" type="number" min="0" name="agePreference" id="agePreference" value="{{user.dogPreferences.agePreference}}">
+
+                <label class="settingsLabel" for="sizePreferenceMax">Max Weight Preference</label>
+                <input class="settingsInput" type="number" min="0" name="sizePreferenceMax" id="sizePreferenceMax" value="{{user.dogPreferences.sizePreferenceMax}}">
+
+                <label class="settingsLabel" for="genderPreferenceM">Disallow Male Dogs?</label>
+                <input class="settingsInput" type="checkbox" id="genderPreferenceM" name="genderPreferenceM" style="box-shadow: none;">
+
+                <label class="settingsLabel" for="genderPreferenceF">Disallow Female Dogs?</label>
+                <input class="settingsInput" type="checkbox" id="genderPreferenceF" name="genderPreferenceF" style="box-shadow: none;">
+
+                <button class="settingsSubmit" type="submit">Save</button>
+            </form>
+        </div>
+        <div class="settingsContainer doggies">
+            <h2 class="likedDogsHeader">Your Liked Dogs</h2>
+            <div class="likedDogs">
+                {{#each user.likedDogs}}
+                <!--<a href="/acenters/{{this.acenterId}}/dogs/{{this._id}}">-->
+                <a onclick={openModal(event)}                         
+                    data-dog-id="{{this._id}}"
+                    data-acenter-id="{{this.acenterId}}"
+                    data-name="Name: {{this.name}}"
+                    data-dob="DOB: {{this.dob}}"
+                    data-size="Size (lbs): {{this.size}}"
+                    data-gender="Gender: {{this.gender}}"
+                    data-breeds="Breeds: {{this.breeds}}"
+                    data-img="{{this.img}}"
+                    data-userId="{{user._id}}"
+                    class="likedDogLinkButton"
+                >
+                    <div class="likedDog">
+                        <img src="{{this.img}}" alt="dog" >
+                        <p>{{this.name}}</p>
+                    </div>
+                </a>
+                {{/each}}
+            </div>
+        </div>
+
+
+
+        <div id="dog-modal" class="modal" 
+            data-acenterId=""
+            data-userId=""
+        >
+            <div class="update-dog-modal-content">
+                <span class="update-dog-close" onclick="closeModal()">&times;</span>
+                <h2 class="update-dog-header">Dog Information</h2>
+                <div class="settings-modal-info-container">
+                    <img src="placeholder" alt="dog" id="dog-img" class="settings-dog-modal-image">
+                    <div class="settings-dog-info-container">
+                        <h3 id="dog-name">Name</h3>
+                        <h3 id="dog-dob">DOB</h3>
+                        <h3 id="dog-size">Size</h3>
+                        <h3 id="dog-gender">Gender</h3>
+                        <h3 id="dog-breeds">Breeds</h3>
+                        <button class="settingsSubmit" onclick={startChat()}>Start Chatting</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+
+    function openModal(info) {
+        let dogInfo = info.currentTarget.dataset;
+        //console.log(dogInfo);
+
+        let dogCard = document.getElementById("dog-modal");
+
+        dogCard.setAttribute("data-acenterId", dogInfo.acenterId);
+        dogCard.setAttribute("data-userId", "{{user._id}}");
+
+        let dogImg = document.getElementById("dog-img");
+        dogImg.src = dogInfo.img;
+
+        let dogName = document.getElementById("dog-name");
+        dogName.innerHTML = dogInfo.name;
+
+        let dogDob = document.getElementById("dog-dob");
+        dogDob.innerHTML = dogInfo.dob;
+
+        let dogSize = document.getElementById("dog-size");
+        dogSize.innerHTML = dogInfo.size;
+
+        let dogGender = document.getElementById("dog-gender");
+        dogGender.innerHTML = dogInfo.gender;
+
+        let dogBreeds = document.getElementById("dog-breeds");
+        let dogBreedsArray = dogInfo.breeds;
+        dogBreeds.innerHTML = dogBreedsArray;
+
+        dogCard.style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("dog-modal").style.display = "none";
+    }
+
+    function startChat(){
+        let info = document.getElementById("dog-modal").dataset;
+        let acenterid = info.acenterid;
+        let userid = info.userid;
+
+        (function ($) {
+            $.ajax({
+                method: 'POST',
+                url: `/chats/${userid}/${acenterid}`,
+                success: function(data){
+                    window.location.href = `/chats/user/${userid}`;
+                },
+                error: function (err) {
+                    if(err.status === 409){
+                        alert("You already have a chat with this adoption center!");
+                    } 
+                }
+            })
+        })(window.jQuery);
+    }
+</script>
+
+<!-- <script type="module" src="/js/user-update-validation.js"></script> -->
+<script type="module">
+    //check if checkboxes need to be checked
+    if({{user.dogPreferences.genderPreferenceF}} != null && {{user.dogPreferences.genderPreferenceF}} === true){
+        $("#genderPreferenceF").prop("checked", true)
+    }
+
+    if({{user.dogPreferences.genderPreferenceM}} != null && {{user.dogPreferences.genderPreferenceM}} === true){
+        $("#genderPreferenceM").prop("checked", true)
+    }
+
+
+    //import clientValidation methods
+    import clientValidation from "/js/client-validation-methods.js";
+
+    let updateForm = document.getElementById("update-user");
+
+    if (updateForm) {
+        let emailAddressIn = document.getElementById("email");
+        let passwordIn = document.getElementById("password");
+        let firstNameIn = document.getElementById("firstName");
+        let lastNameIn = document.getElementById("lastName");
+        let dobIn = document.getElementById("dob");
+        let phoneIn = document.getElementById("phone");
+        let addressIn = document.getElementById("address");
+        let image = document.getElementById('image');
+        let agePreferenceIn = document.getElementById("agePreference");
+        let sizePreferenceMaxIn = document.getElementById("sizePreferenceMax");
+        let genderPreferenceMIn = document.getElementById("genderPreferenceM");
+        let genderPreferenceFIn = document.getElementById("genderPreferenceF");
+
+        let error = document.getElementById("error");
+
+        updateForm.addEventListener("submit", function (event) {
+            try {
+                error.hidden = true;
+                event.preventDefault();
+
+                if(firstNameIn.value){
+                firstNameIn.value = clientValidation.checkName(
+                    firstNameIn.value,
+                    "First Name"
+                );
+                }
+
+                if(lastNameIn.value){
+                    lastNameIn.value = clientValidation.checkName(
+                        lastNameIn.value,
+                        "Last Name"
+                    );
+                }
+
+
+                if(emailAddressIn.value){
+                    emailAddressIn.value = clientValidation.checkEmailRegex(
+                        emailAddressIn.value,
+                        "Email Address"
+                    );
+                }
+
+                if(dobIn.value){
+                    dobIn.value = clientValidation.checkDate(
+                        dobIn.value,
+                        "Date of Birth"
+                    );
+                }
+
+                if(phoneIn.value){
+                    phoneIn.value = clientValidation.checkPhoneRegex(
+                        phoneIn.value,
+                        "Phone Number"
+                    );
+                }
+
+                if (passwordIn.value) {
+                    passwordIn.value = clientValidation.checkPassword(
+                        passwordIn.value,
+                        "Password"
+                    );
+                }
+                
+                if(addressIn.value){
+                    addressIn.value = clientValidation.checkString(
+                        addressIn.value,
+                        "Address"
+                    );
+                }
+
+                if(agePreferenceIn.value){
+                    agePreferenceIn.value = clientValidation.checkMaxPreference(
+                        agePreferenceIn.value,
+                        "Age Preference"
+                    );
+                }
+
+                if(sizePreferenceMaxIn.value){
+                    sizePreferenceMaxIn.value = clientValidation.checkMaxPreference(
+                        sizePreferenceMaxIn.value,
+                        "Size Preference"
+                    );
+                }
+
+                //check that genderPreferenceM is of type checkbox
+                if(genderPreferenceFIn.type != 'checkbox' || genderPreferenceMIn.type != 'checkbox'){
+                    throw 'Gender Preferences MUST be of type checkbox.'
+                }
+                error.hidden = false;
+
+            console.log("form submitted");
+                let formData = new FormData($('#update-user')[0]);
+
+                $.ajax({
+                    url: `/users/{{user._id}}`,
+                    type: "PUT",
+                    contentType: false,
+                    processData: false,
+                    cache: true,
+                    data: formData,
+                    success: function (data) {
+                        //console.log(data);
+
+                        let successMessage = document.getElementById("success");
+                        if (successMessage) {
+                            successMessage.remove();
+                        }
+
+                        let errorMessage = document.getElementById("error");
+                        if (errorMessage) {
+                            errorMessage.remove();
+                        }
+
+                        let success = document.createElement("p");
+                        let container = document.getElementById("user-settings");
+
+                        success.innerText = "User updated successfully";
+                        success.style.color = "green";
+                        success.style.marginTop = "10px";
+                        success.style.textAlign = "center";
+                        success.id = "success";
+                        container.appendChild(success);
+                    },
+                    error: function (err) {
+                        let data = $("#update-user").serialize();
+                        // console.log(err);
+                        // console.log(data);
+
+                        let errorMessage = document.getElementById("error");
+                        if (errorMessage) {
+                            errorMessage.remove();
+                        }
+
+                        let successMessage = document.getElementById("success");
+                        if (successMessage) {
+                            successMessage.remove();
+                        }
+                        let error = document.createElement("p");
+                        let container = document.getElementById("user-settings");
+                        let errorText = "An error occurred while updating your profile.";
+                        
+                        // Check if responseJSON exists and has error property
+                        if (err.responseJSON && err.responseJSON.error) {
+                            errorText = err.responseJSON.error;
+                            if(typeof errorText == 'object'){
+                                errorText = errorText.message || errorText.toString();
+                            }
+                        } else if (err.responseText) {
+                            // Try to parse responseText if it's JSON
+                            try {
+                                const parsedResponse = JSON.parse(err.responseText);
+                                if (parsedResponse.error) {
+                                    errorText = parsedResponse.error;
+                                }
+                            } catch (parseError) {
+                                // If it's not JSON, use a generic error message
+                                errorText = "Server error occurred. Please try again.";
+                            }
+                        }
+                        
+                        console.log("Error details:", err);
+                        error.innerText = errorText;
+                        error.style.color = "var(--error-color)";
+                        error.style.marginTop = "10px";
+                        error.style.textAlign = "center";
+                        error.id = "error";
+                        container.appendChild(error);
+                    }
+                });
+                  } catch (e) {
+                event.preventDefault();
+                error.hidden = false;
+                error.innerHTML = e;
+            }
+        });
+    }
+</script>

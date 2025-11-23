@@ -1,0 +1,22 @@
+name: Deploy Snoops to LXC (Self-Hosted Runner)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull latest code
+        run: |
+          cd /opt/SnoopsDocker
+          git pull
+
+      - name: Rebuild and restart Docker Compose stack
+        run: |
+          cd /opt/SnoopsDocker
+          docker compose down
+          docker compose up -d --build
